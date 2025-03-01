@@ -1,0 +1,48 @@
+DOCKERDEFENDER LICENSE AGREEMENT v1.0
+
+IMPORTANT – READ CAREFULLY: This License Agreement ("Agreement") is a legal contract between you (either an individual or a single entity) and Grzegorz Gajewski ("Licensor") for the use of DockerDefender (the "Software"). 
+By using, copying, modifying, or distributing the Software, you agree to be bound by the terms of this Agreement. If you do not agree to these terms, do not use the Software.
+
+1. DEFINITIONS
+   a. "Software" means DockerDefender, including all associated components, updates, modifications, and documentation.
+   b. "Small Business" means any business organization with fewer than 250 employees and less than USD 10 million in annual revenue.
+   c. "Personal Use" means use by an individual strictly for non-commercial purposes.
+   d. "Educational Use" means use by an educational institution or individual for educational or research purposes.
+   e. "Non-Commercial Open Source Project" means any project that is distributed under an OSI-approved open source license without any commercial restrictions.
+   f. "Commercial Use" means any use that does not qualify as Personal Use, Small Business Use, Educational Use, or Non-Commercial Open Source Project use. Commercial Use includes, but is not limited to, use by:
+       i. Businesses with 250 or more employees or with annual revenue equal to or exceeding USD 10 million;
+      ii. Any use in a commercial product or service;
+     iii. Any use by government or public sector entities.
+
+2. LICENSE GRANT
+   Subject to the terms and conditions of this Agreement, Licensor hereby grants you a limited, non-exclusive, non-transferable, royalty-free license to use, reproduce, and modify the Software solely for:
+       (i) Personal Use,
+      (ii) Use by a Small Business,
+     (iii) Educational Use, and
+      (iv) Non-Commercial Open Source Project Use.
+   Any use of the Software for Commercial Use is strictly prohibited unless you obtain a separate, paid commercial license from Licensor.
+
+3. COMMERCIAL LICENSE
+   a. If your use of the Software constitutes Commercial Use, you must secure a paid commercial license from Licensor prior to using the Software.
+   b. This requirement applies to all Commercial Use, including use by government entities.
+
+4. CONTRIBUTIONS
+   a. Contributions to the Software shall be submitted only via the official GitHub repository located at [GitHub Repository URL].
+   b. By contributing, you agree to the terms of the DockerDefender Contributor License Agreement (CLA), which is incorporated herein by reference.
+
+5. COPYRIGHT AND DISTRIBUTION
+   All copies of the Software, including modifications or derivative works, must include this Agreement in its entirety. Redistribution of the Software, in whole or in part, is subject to the terms herein.
+
+6. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. LICENSOR SHALL NOT BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OF THE SOFTWARE.
+
+7. TERMINATION
+   This Agreement is effective until terminated. Your rights under this Agreement will terminate automatically without notice if you fail to comply with any of its terms. Upon termination, you must cease all use of the Software and destroy all copies in your possession.
+
+8. GOVERNING LAW
+   This Agreement shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions.
+
+9. ENTIRE AGREEMENT
+   This Agreement constitutes the entire agreement between you and Licensor regarding the subject matter hereof and supersedes any prior or contemporaneous understandings or agreements, whether written or oral.
+
+For questions or to obtain a commercial license, please contact: [Your Email/Website]
