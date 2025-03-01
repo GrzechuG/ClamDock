@@ -1,4 +1,4 @@
-# DockerDefender 🚀🔍  
+# DockerDefender 🛡️🔍  
 **A Malware Scanner for Active Docker Containers**  
 
 ## 📖 Overview  
@@ -105,49 +105,44 @@ sudo python3 docker_defender.py defend
 
 ## 📝 Example Output  
 
-### **Scanning Containers**
+### Scanning Containers
 ```sh
 sudo python3 docker_defender.py scan
 ```
-🔍 Scanning container: **3b2ac6a7d1f5**...  
-✅ No threats found in container **3b2ac6a7d1f5**.  
-🔍 Scanning container: **8f4c2b9e0c21**...  
-⚠️ Malware detected in container **8f4c2b9e0c21**!  
-```
 
-### **Monitoring for New Files**
+![image](https://github.com/user-attachments/assets/5e717ea4-f2c2-427b-908e-3eb39e611feb)
+
+
+
+### Monitoring for New Files
+
 ```sh
-sudo python3 docker_defender.py monitor --interval 30
+sudo python3 docker_defender.py monitor --interval 10
 ```
-🔄 Monitoring containers for threats...  
-📂 New files detected in container **3b2ac6a7d1f5**! Scanning...  
-✅ No threats found.  
-📂 New files detected in container **8f4c2b9e0c21**! Scanning...  
-⚠️ Malware found in **/merged/path/malicious.sh**!  
-```
+![image](https://github.com/user-attachments/assets/fb8b6e5f-a35c-4a03-b4e5-0c3daca05572)
 
-### **Auto-Deleting Infected Files**
+
+
+### Auto-Deleting Infected Files
+
 ```sh
 sudo python3 docker_defender.py defend
 ```
-🛡️ Scanning container: **8f4c2b9e0c21**...  
-🗑️ Infected file **/merged/path/malicious.sh** removed!  
+![image](https://github.com/user-attachments/assets/773bd036-207a-40b7-99d1-b3300f69866a)
+
 
 ---
 
 ## 👨‍💻 Developer Guide  
 
 ### 🏗️ Running in a Virtual Environment  
+
 ```sh
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 🛠️ Debug Mode  
-Add `--verbose` to enable debug logging.  
-
----
 
 ## 🏆 Why Use DockerDefender?  
 
