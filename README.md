@@ -1,22 +1,23 @@
 # DockerDefender 🛡️🔍  
-**A Malware Scanner for running Docker Containers**  
+**A Host-Based Malware Scanner for Running Docker Containers**  
 
 ## 📖 Overview  
-DockerDefender is a security tool designed to scan actively running Docker containers for malware. It integrates with **ClamAV** to detect threats in containerized environments and supports:  
-- **Full container scans**  
-- **Real-time monitoring** of new files  
+DockerDefender is a security tool that runs on the **host system**, scanning actively running Docker containers for malware **from outside the containerized environment**. It integrates with **ClamAV** to detect threats in containers without needing to run inside them. Key features include:  
+- **Full container scans** from the host system  
+- **Real-time monitoring** of new files inside containers  
 - **Automatic removal** of detected malware  
 - **Database tracking** of container file changes  
 - **Popup alerts** for malware detection  
 
 ## 🎯 Features  
-✅ Scans all running containers for malware  
+✅ Scans all running containers for malware **from the host system**  
+✅ Runs **outside of containers** for enhanced security  
 ✅ Supports **ClamAV** (`clamscan` or `clamdscan`) for detection  
 ✅ Tracks newly created files inside containers  
 ✅ Periodic monitoring for continuous security  
 ✅ Optional **automatic deletion** of infected files  
 ✅ SQLite database for tracking scanned files  
-✅ Popup alerts for immediate threat notifications  
+✅ Popup alerts for immediate threat notifications
 
 ---
 
