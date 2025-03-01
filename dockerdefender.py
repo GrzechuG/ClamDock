@@ -8,251 +8,209 @@ import tkinter
 from tkinter import messagebox
 import json
 
-# Function to check if clamscan is installed
-def check_clamscan():
-    try:
-        result = subprocess.run(["clamscan", "--version"], capture_output=True, text=True, check=True)
-        print(f"✔ ClamAV Installed: {result.stdout.strip()}")
-    except FileNotFoundError:
-        print("❌ ClamAV is not installed. Please install it before using DockerDefender.")
-        sys.exit(1)
+class DockerDefender:
+    def __init__(self):
+        self.db_path = "docker_defender.db"
+        self.scan_command = self.detect_clamav()  # Detect best scanning method
+        self.static_scan_params = ["--fdpass"] if self.scan_command == "clamdscan" else []
+        self.check_if_root()
+        self.create_db()
 
-# Function to check if script is running as root
-def check_if_root():
-    if os.geteuid() != 0:
-        print("❌ This script must be run as root or with sudo privileges.")
-        sys.exit(1)
+    def run_scan_command(self, scan_command, prefix):
+        return self.remove_docker_paths_from_output(subprocess.run(scan_command + self.static_scan_params, capture_output=True, text=True).stdout, prefix)
 
-# Function to create SQLite database for storing file paths
-def create_db():
-    conn = sqlite3.connect('docker_defender.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS files (
-            id INTEGER PRIMARY KEY,
-            container_id TEXT NOT NULL,
-            file_path TEXT NOT NULL,
-            added_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    def detect_clamav(self):
+        """Detects if clamscan or clamdscan is available and sets the best scanning method."""
+        try:
+            subprocess.run(["clamdscan", "--version"], capture_output=True, text=True, check=True)
+            print("✔ Using clamdscan (recommended for better performance).")
+            return "clamdscan"
+        except subprocess.CalledProcessError:
+            try:
+                subprocess.run(["clamscan", "--version"], capture_output=True, text=True, check=True)
+                print("✔ Using clamscan.")
+                print("⚠️ Warning: clamdscan is faster and recommended. Install it for better performance.")
+                return "clamscan"
+            except subprocess.CalledProcessError:
+                print("❌ ClamAV is not installed. Please install it before using DockerDefender.")
+                sys.exit(1)
 
-# Function to store file paths in SQLite database, add new ones and remove deleted ones
-def store_file_paths(container_id, file_paths):
-    conn = sqlite3.connect('docker_defender.db')
-    cursor = conn.cursor()
+    def check_if_root(self):
+        """Checks if the script is running as root."""
+        if os.geteuid() != 0:
+            print("❌ This script must be run as root or with sudo privileges.")
+            sys.exit(1)
 
-    # Fetch existing file paths for the container from the database
-    cursor.execute('''
-        SELECT file_path FROM files WHERE container_id = ?
-    ''', (container_id,))
-    existing_files = {row[0] for row in cursor.fetchall()}
-
-    # Identify new files (that are in the current snapshot but not in the DB)
-    new_files = [file_path for file_path in file_paths if file_path not in existing_files]
-    
-    # Identify deleted files (that are in the DB but not in the current snapshot)
-    deleted_files = [file_path for file_path in existing_files if file_path not in file_paths]
-    
-    # Add new files to the database
-    for file_path in new_files:
+    def create_db(self):
+        """Creates the SQLite database for storing file paths if it does not exist."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO files (container_id, file_path) 
-            VALUES (?, ?)
-        ''', (container_id, file_path))
+            CREATE TABLE IF NOT EXISTS files (
+                id INTEGER PRIMARY KEY,
+                container_id TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                added_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        conn.close()
 
-    # Remove deleted files from the database
-    for file_path in deleted_files:
-        cursor.execute('''
-            DELETE FROM files WHERE container_id = ? AND file_path = ?
-        ''', (container_id, file_path))
+    def get_running_containers(self):
+        """Returns a list of running Docker container IDs."""
+        result = subprocess.run(["docker", "ps", "--format", "{{.ID}}"], capture_output=True, text=True)
+        return result.stdout.strip().split("\n") if result.stdout else []
 
-    conn.commit()
-    conn.close()
+    def get_container_folders(self, container_id):
+        """Gets the overlay mounted paths for a given container."""
+        try:
+            inspect_cmd = ["docker", "container", "inspect", "--format", "{{json .GraphDriver.Data }}", container_id]
+            result = subprocess.run(inspect_cmd, capture_output=True, text=True, check=True)
+            graph_data = json.loads(result.stdout.strip())
+            return {
+                "LowerDir": graph_data.get("LowerDir"),
+                "MergedDir": graph_data.get("MergedDir"),
+                "UpperDir": graph_data.get("UpperDir"),
+                "WorkDir": graph_data.get("WorkDir")
+            }
+        except subprocess.CalledProcessError:
+            print(f"❌ Error inspecting container {container_id}.")
+            return None
 
-# Function to get the overlay mounted paths for a container
-def get_container_folders(container_id):
-    try:
-        # Inspect container and get its GraphDriver data in JSON format
-        inspect_cmd = [
-            "docker", "container", "inspect", 
-            "--format", "{{json .GraphDriver.Data }}", container_id
-        ]
-        result = subprocess.run(inspect_cmd, capture_output=True, text=True, check=True)
-        
-        # Parse the JSON result
-        graph_data = json.loads(result.stdout.strip())
-        
-        # Return a dictionary of folder paths (LowerDir, MergedDir, UpperDir, WorkDir)
-        return {
-            "LowerDir": graph_data.get("LowerDir"),
-            "MergedDir": graph_data.get("MergedDir"),
-            "UpperDir": graph_data.get("UpperDir"),
-            "WorkDir": graph_data.get("WorkDir")
-        }
-    
-    except subprocess.CalledProcessError as e:
-        print(f"Error inspecting container {container_id}: {e}")
-        return None
+    def list_files_in_directory(self, directory):
+        """Recursively lists all files under a given directory."""
+        file_paths = []
+        for root, _, files in os.walk(directory):
+            for file in files:
+                file_paths.append(os.path.join(root, file))
+        return file_paths
 
-# Function to list all files under a given directory recursively
-def list_files_in_directory(directory):
-    file_paths = []
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            file_paths.append(os.path.join(root, file))
-    return file_paths
-
-# Function to detect newly created files by comparing with the DB
-def detect_new_files(container_id, current_file_paths):
-    conn = sqlite3.connect('docker_defender.db')
-    cursor = conn.cursor()
-    
-    # Get existing files for this container from the DB
-    cursor.execute('''
-        SELECT file_path FROM files WHERE container_id = ?
-    ''', (container_id,))
-    existing_files = {row[0] for row in cursor.fetchall()}
-    
-    # Compare current file paths with existing ones
-    new_files = [file_path for file_path in current_file_paths if file_path not in existing_files]
-    
-    conn.close()
-    return new_files
-
-def remove_docker_paths_from_output(output, prefix):
-    lst = output.split("\n")
-    return "\n".join([line if not line.startswith(prefix) else line.replace(prefix, "") for line in lst ])
+    def remove_docker_paths_from_output(self, output, prefix):
+        lst = output.split("\n")
+        return "\n".join([line if not line.startswith(prefix) else line.replace(prefix, "") for line in lst ])
 
 
-# Function to scan a specific Docker container
-def scan_container(container_id, auto_delete=False):
-    print(f"🔍 Scanning container: {container_id}...")
-    folders = get_container_folders(container_id)
-    merged = folders["MergedDir"]
+    def store_file_paths(self, container_id, file_paths):
+        """Stores new file paths in the database and removes deleted ones."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
 
-    # Run clamscan inside the container on the merged directory
-    scan_command = ["clamscan", "-ri", merged]
-    if auto_delete:
-        scan_command.append("--remove")  # Enable auto-delete if 'defend' mode is on
+        # Get existing files from the DB
+        cursor.execute("SELECT file_path FROM files WHERE container_id = ?", (container_id,))
+        existing_files = {row[0] for row in cursor.fetchall()}
 
-    result = remove_docker_paths_from_output(ubprocess.run(scan_command, capture_output=True, text=True).stdout, merged)
-    print(result)
-    if "FOUND" in result:
-        print(f"⚠️ Malware detected in container {container_id}")
-        return result
-    else:
+        new_files = [file for file in file_paths if file not in existing_files]
+        deleted_files = [file for file in existing_files if file not in file_paths]
+
+        # Add new files
+        for file_path in new_files:
+            cursor.execute("INSERT INTO files (container_id, file_path) VALUES (?, ?)", (container_id, file_path))
+
+        # Remove deleted files
+        for file_path in deleted_files:
+            cursor.execute("DELETE FROM files WHERE container_id = ? AND file_path = ?", (container_id, file_path))
+
+        conn.commit()
+        conn.close()
+
+    def detect_new_files(self, container_id, current_file_paths):
+        """Detects newly created files in a container."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT file_path FROM files WHERE container_id = ?", (container_id,))
+        existing_files = {row[0] for row in cursor.fetchall()}
+        conn.close()
+        return [file for file in current_file_paths if file not in existing_files]
+
+    def scan_container(self, container_id, auto_delete=False):
+        """Scans a Docker container using ClamAV."""
+        print(f"🔍 Scanning container: {container_id}...")
+        folders = self.get_container_folders(container_id)
+        merged = folders["MergedDir"]
+
+        scan_command = [self.scan_command, "-ri", merged]
+        if auto_delete:
+            scan_command.append("--remove")
+
+        result = result = self.run_scan_command(scan_command, merged)
+        print(result)
+        if "FOUND" in result:
+            print(f"⚠️ Malware detected in container {container_id}!")
+            return result
         print(f"✅ No threats found in container {container_id}.")
         return None
 
-# Function to show a popup notification
-def show_popup(message):
-    root = tkinter.Tk()
-    root.withdraw()
-    messagebox.showwarning("DockerDefender Alert", message)
-    root.destroy()
+    def scan_all_containers(self, auto_delete=False, popup=False):
+        """Scans all running containers."""
+        containers = self.get_running_containers()
+        if not containers:
+            print("⚠️ No running containers found.")
+            return
+        for container_id in containers:
+            detection = self.scan_container(container_id, auto_delete)
+            if detection and popup:
+                self.show_popup(f"Malware detected in container {container_id}!")
 
-# Function to scan newly created files
-def scan_new_files(container_id, auto_delete=False, popup=False):
-    # Get the current files in the container
-    folders = get_container_folders(container_id)
-    merged = folders["MergedDir"]
-    
-    # List all files under MergedDir
-    current_file_paths = list_files_in_directory(merged)
-    
-    # Detect new files by comparing with the DB
-    new_files = detect_new_files(container_id, current_file_paths)
-    
-    print("New files found:", new_files)
+    def scan_new_files(self, container_id, auto_delete=False, popup=False):
+        """Scans newly created files in a container."""
+        folders = self.get_container_folders(container_id)
+        merged = folders["MergedDir"]
+        current_files = self.list_files_in_directory(merged)
+        new_files = self.detect_new_files(container_id, current_files)
 
-    open("/tmp/file-list.txt", "w+").write("")
+        if new_files:
+            print(f"🔍 Scanning new files in container {container_id}...")
+            with open("/tmp/file-list.txt", "w") as f:
+                f.writelines(f"{file}\n" for file in new_files)
 
-    with open("/tmp/file-list.txt", "r+") as f:
-        for file in new_files:
-            f.write(file + "\n")
+            scan_command = [self.scan_command, "-i", "--file-list=/tmp/file-list.txt"]
+            if auto_delete:
+                scan_command.append("--remove")
 
+            result = self.run_scan_command(scan_command, merged)
+            if "FOUND" in result:
+                print(f"⚠️ Malware detected in container {container_id}!")
+                if popup:
+                    self.show_popup(f"Malware detected in {container_id}!")
 
+            print(result)
 
-    if new_files:
-        print(f"🔍 New files detected in container {container_id}. Scanning...")
-        
-        # Run clamscan on each new file
-        scan_command = ["clamscan", "-i", "--file-list=/tmp/file-list.txt"]
-        if auto_delete:
-            scan_command.append("--remove")
-        result = remove_docker_paths_from_output(subprocess.run(scan_command, capture_output=True, text=True).stdout, merged)
+        self.store_file_paths(container_id, current_files)
 
-        
-        if "FOUND" in result:
-            print(f"⚠️ Malware detected in container {container_id}")
-            if popup:
-                show_popup(f"Malware detected in {file} in container {container_id}!")
-        
-        print(result)
+    def monitor_containers(self, interval=60, popup=False, auto_delete=False):
+        """Continuously monitors running containers for new files and scans them."""
+        print("🔄 Monitoring containers for threats. Press Ctrl+C to stop.")
+        try:
+            while True:
+                for container_id in self.get_running_containers():
+                    self.scan_new_files(container_id, auto_delete, popup)
+                time.sleep(interval)
+        except KeyboardInterrupt:
+            print("\n🛑 Monitoring stopped.")
 
+    def show_popup(self, message):
+        """Displays a popup notification."""
+        root = tkinter.Tk()
+        root.withdraw()
+        messagebox.showwarning("DockerDefender Alert", message)
+        root.destroy()
 
-    else:
-        print(f"✅ No new files detected in container {container_id}.")
-
-    # Store the file paths in the database
-    store_file_paths(container_id, current_file_paths)
-
-# Function to scan all running containers
-def scan_all_containers(auto_delete=False, popup=False):
-    containers = get_running_containers()
-    if not containers:
-        print("⚠️ No running containers found.")
-        return
-    
-    for container_id in containers:
-        detection = scan_container(container_id, auto_delete)
-        if detection and popup:
-            show_popup(f"Malware detected in container {container_id}!")
-
-            
-# Function to monitor containers in a loop
-def monitor_containers(interval=60, popup=False, auto_delete=False):
-    print("🔄 Monitoring containers for threats. Press Ctrl+C to stop.")
-    containers = get_running_containers()
-    try:
-        while True:
-            for container_id in containers:
-                scan_new_files(container_id, auto_delete, popup)
-            time.sleep(interval)
-    except KeyboardInterrupt:
-        print("\n🛑 Monitoring stopped.")
-
-# Function to get all running Docker container IDs
-def get_running_containers():
-    result = subprocess.run(["docker", "ps", "--format", "{{.ID}}"], capture_output=True, text=True)
-    return result.stdout.strip().split("\n") if result.stdout else []
-
-# Main function to handle command-line arguments
 def main():
-    check_if_root()  # Ensure the script is run as root
+    defender = DockerDefender()
     
-    parser = argparse.ArgumentParser(description="DockerDefender - Docker Malware Scanner using ClamAV")
-    
-    parser.add_argument("command", choices=["scan", "monitor", "defend"], help="Choose a mode to run DockerDefender")
-    parser.add_argument("--popup", action="store_true", help="Show a popup notification when malware is detected")
-    parser.add_argument("--interval", type=int, default=60, help="Interval for monitoring mode (default: 60 seconds)")
-    
+    parser = argparse.ArgumentParser(description="DockerDefender - Docker Malware Scanner")
+    parser.add_argument("command", choices=["scan", "monitor", "defend"], help="Choose a mode")
+    parser.add_argument("--popup", action="store_true", help="Show popup on detection")
+    parser.add_argument("--interval", type=int, default=60, help="Monitoring interval (default: 60s)")
+
     args = parser.parse_args()
     
-    create_db()  # Create the database to store file paths
-    
-    check_clamscan()  # Ensure ClamAV is installed
-    
     if args.command == "scan":
-        scan_all_containers()
-    
+        defender.scan_all_containers()
     elif args.command == "monitor":
-        monitor_containers(args.interval, args.popup)
-
+        defender.monitor_containers(args.interval, args.popup)
     elif args.command == "defend":
-        scan_all_containers(auto_delete=True)
+        defender.scan_all_containers(auto_delete=True)
 
 if __name__ == "__main__":
     main()
