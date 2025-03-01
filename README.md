@@ -164,7 +164,7 @@ We welcome contributions! Feel free to open issues or pull requests on GitHub.
 ---
 
 ## 📜 License  
-MIT License © 2025  
+[Custom License](https://github.com/GrzechuG/DockerDefender/tree/main?tab=License-1-ov-file)
 
 ---
 
