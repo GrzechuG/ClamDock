@@ -1,2 +1,2 @@
-# ClamDock
+# DockerDefender
 DockerDefender
