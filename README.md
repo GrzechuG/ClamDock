@@ -168,4 +168,4 @@ We welcome contributions! Feel free to open issues or pull requests on GitHub.
 
 ---
 
-🔗 **GitHub Repository**: [https://github.com/yourrepo/docker-defender](https://github.com/yourrepo/docker-defender) 🚀
+
