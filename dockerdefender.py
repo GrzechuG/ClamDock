@@ -121,6 +121,11 @@ def detect_new_files(container_id, current_file_paths):
     conn.close()
     return new_files
 
+def remove_docker_paths_from_output(output, prefix):
+    lst = output.split("\n")
+    return "\n".join([line if not line.startswith(prefix) else line.replace(prefix, "") for line in lst ])
+
+
 # Function to scan a specific Docker container
 def scan_container(container_id, auto_delete=False):
     print(f"🔍 Scanning container: {container_id}...")
@@ -132,11 +137,11 @@ def scan_container(container_id, auto_delete=False):
     if auto_delete:
         scan_command.append("--remove")  # Enable auto-delete if 'defend' mode is on
 
-    result = subprocess.run(scan_command, capture_output=True, text=True)
-    print(result.stdout)
-    if "FOUND" in result.stdout:
-        print(f"⚠️ Malware detected in container {container_id}:\n{result.stdout}")
-        return result.stdout
+    result = remove_docker_paths_from_output(ubprocess.run(scan_command, capture_output=True, text=True).stdout, merged)
+    print(result)
+    if "FOUND" in result:
+        print(f"⚠️ Malware detected in container {container_id}")
+        return result
     else:
         print(f"✅ No threats found in container {container_id}.")
         return None
@@ -172,18 +177,22 @@ def scan_new_files(container_id, auto_delete=False, popup=False):
 
     if new_files:
         print(f"🔍 New files detected in container {container_id}. Scanning...")
-        for file in new_files:
-            # Run clamscan on each new file
-            scan_command = ["clamscan", "-i", "--file-list=/tmp/file-list.txt"]
-            if auto_delete:
-                scan_command.append("--remove")
-            result = subprocess.run(scan_command, capture_output=True, text=True)
+        
+        # Run clamscan on each new file
+        scan_command = ["clamscan", "-i", "--file-list=/tmp/file-list.txt"]
+        if auto_delete:
+            scan_command.append("--remove")
+        result = remove_docker_paths_from_output(subprocess.run(scan_command, capture_output=True, text=True).stdout, merged)
 
-            print(result.stdout)
-            if "FOUND" in result.stdout:
-                print(f"⚠️ Malware detected in {file}:\n{result.stdout}")
-                if popup:
-                    show_popup(f"Malware detected in {file} in container {container_id}!")
+        
+        if "FOUND" in result:
+            print(f"⚠️ Malware detected in container {container_id}")
+            if popup:
+                show_popup(f"Malware detected in {file} in container {container_id}!")
+        
+        print(result)
+
+
     else:
         print(f"✅ No new files detected in container {container_id}.")
 
