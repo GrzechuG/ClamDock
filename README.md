@@ -16,7 +16,6 @@ DockerDefender is a security tool that runs on the **host system**, scanning act
 ✅ Tracks newly created files inside containers  
 ✅ Periodic monitoring for continuous security  
 ✅ Optional **automatic deletion** of infected files  
-✅ SQLite database for tracking scanned files  
 ✅ Popup alerts for immediate threat notifications
 
 ---
