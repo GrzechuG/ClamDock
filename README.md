@@ -148,7 +148,7 @@ DockerDefender helps detect and remove malware, but **it is not a replacement fo
 
 ---
 
-## Support the Project ☕
+## ☕Support the Project 
 If you enjoy using DockerDefender and find it useful, you can support the project and help keep it going by buying me a coffee! Your support allows me to continue working on this project and improving it for everyone.
 
 Simply click the button to make a small contribution and buy me a coffee (or two!). Every little bit helps and is greatly appreciated!
