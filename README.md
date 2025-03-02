@@ -1,7 +1,7 @@
-# DockerDefender 🛡️🔍  
+# DockerDefender <img src="https://github.com/user-attachments/assets/61fcc5cc-cdd9-43de-95aa-1d51e989a48d" width="200">
 **A Host-Based Malware Scanner for Running Docker Containers** 
 
-<img src="https://github.com/user-attachments/assets/61fcc5cc-cdd9-43de-95aa-1d51e989a48d" width="200">
+
 
 ## 📖 Overview  
 DockerDefender is a security tool that runs on the **host system**, scanning actively running Docker containers for malware **from outside the containerized environment**. It integrates with **ClamAV** to detect threats in containers without needing to run inside them. Key features include:  
