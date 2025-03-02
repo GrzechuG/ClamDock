@@ -94,8 +94,8 @@ sudo python3 docker_defender.py defend
 3. **Scans Files for Malware**  
    Runs **ClamAV** (`clamdscan` or `clamscan`) on container files.  
 
-4. **Tracks File Changes**  
-   Uses an **SQLite database** to track existing files and detect newly created ones.  
+4. **Tracks new Files**  
+   Uses an **SQLite database** to track and detect newly created files.  
 
 5. **Alerts on Detection**  
    Shows warnings in the terminal and optionally **triggers a popup alert**.  
@@ -133,17 +133,6 @@ sudo python3 docker_defender.py defend
 
 
 ---
-
-## 👨‍💻 Developer Guide  
-
-### 🏗️ Running in a Virtual Environment  
-
-```sh
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
 
 ## 🏆 Why Use DockerDefender?  
 
