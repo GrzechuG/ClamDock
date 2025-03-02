@@ -148,13 +148,36 @@ DockerDefender helps detect and remove malware, but **it is not a replacement fo
 
 ---
 
+## Support the Project ☕
+If you enjoy using DockerDefender and find it useful, you can support the project and help keep it going by buying me a coffee! Your support allows me to continue working on this project and improving it for everyone.
+
+Simply click the button to make a small contribution and buy me a coffee (or two!). Every little bit helps and is greatly appreciated!
+
+<a href="https://www.buymeacoffee.com/GrzechuG" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+
+Thank you for your support! 💖
+
+
 ## 🤝 Contributing  
 We welcome contributions! Feel free to open issues or pull requests on GitHub.  
 
 ---
 
 ## 📜 License  
-[Custom License](https://github.com/GrzechuG/DockerDefender/tree/main?tab=License-1-ov-file)
+Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
+
+This work is licensed under a
+[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
+
+[![CC BY-NC-SA 4.0][cc-by-nc-sa-image]][cc-by-nc-sa]
+
+[cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
+[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
+[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
+
+
+
+
 
 ---
 
