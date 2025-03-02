@@ -1,5 +1,5 @@
 # DockerDefender <img src="https://github.com/user-attachments/assets/61fcc5cc-cdd9-43de-95aa-1d51e989a48d" width="200">
-**A Host-Based Malware Scanner for Running Docker Containers** 
+**A Host-Based Malware Scanner for active Docker Containers** 
 
 
 
